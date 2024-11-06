@@ -1,5 +1,6 @@
 const Book = require('../models/Book')
 const fs = require('fs')
+const sharp = require('sharp')
 
 exports.getAllBooks = (req, res, next) => {
     Book.find()
@@ -92,13 +93,9 @@ exports.addRatingBook = (req, res, next) => {
     Book.findOne({ _id: req.params.id })
         .then((book) => {
             // Vérifier que l'utilisateur n'a pas déjà noté ce livre
-            console.log(
-                "Vérification que l'utilisateur n'ai pas déjà noté ce livre"
-            )
             const userHasRated = book.ratings.some(
                 (rating) => rating.userId === req.auth.userId
             ) // some retounre true ou false
-            console.log('Vérification éffectué', userHasRated)
             if (userHasRated) {
                 return res
                     .status(401)
@@ -134,7 +131,6 @@ exports.addRatingBook = (req, res, next) => {
 }
 
 exports.getBestBooks = (req, res, next) => {
-    console.log('bestBooks')
     Book.find()
         // Liste de tous les livres
         .then((books) => {
@@ -145,7 +141,6 @@ exports.getBestBooks = (req, res, next) => {
 
             // Prend les 3 premiers livres de la liste triée
             const bestBooks = sortedBooks.slice(0, 3)
-            console.log(bestBooks)
 
             // Renvoie les 3 meilleurs livres
             res.status(200).json(bestBooks)
