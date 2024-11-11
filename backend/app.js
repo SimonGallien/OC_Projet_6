@@ -3,14 +3,18 @@ const mongoose = require('mongoose')
 const path = require('path')
 const booksRoutes = require('./routes/book')
 const userRoutes = require('./routes/user')
+require('dotenv').config() // Charger dotenv
+
+// Vérifier si SECRET_KEY est défini en production
+if (!process.env.SECRET_KEY && process.env.NODE_ENV === 'production') {
+    throw new Error('SECRET_KEY is not defined in production environment')
+}
 
 const app = express()
 app.use(express.json())
 
 mongoose
-    .connect(
-        'mongodb+srv://simongallien:p7ocdevweb@cluster0.4we7m.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
-    )
+    .connect(process.env.MONGODB_URI)
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch(() => console.log('Connexion à MongoDB échouée !'))
 

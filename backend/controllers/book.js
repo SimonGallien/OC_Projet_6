@@ -1,6 +1,6 @@
 const Book = require('../models/Book')
 const fs = require('fs')
-const sharp = require('sharp')
+const mongoose = require('mongoose')
 
 exports.getAllBooks = (req, res, next) => {
     Book.find()
@@ -9,8 +9,17 @@ exports.getAllBooks = (req, res, next) => {
 }
 
 exports.getOneBook = (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({ message: 'Invalid ID format' })
+    }
+
     Book.findOne({ _id: req.params.id })
-        .then((book) => res.status(200).json(book))
+        .then((book) => {
+            if (!book) {
+                return res.status(404).json({ message: 'Livre non trouvé' })
+            }
+            res.status(200).json(book)
+        })
         .catch((error) => res.status(400).json({ error }))
 }
 
@@ -36,6 +45,10 @@ exports.createBook = (req, res, next) => {
 }
 
 exports.modifyBook = (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({ message: 'Invalid ID format' })
+    }
+
     const bookObject = req.file
         ? {
               ...JSON.parse(req.body.book),
@@ -67,10 +80,14 @@ exports.modifyBook = (req, res, next) => {
 }
 
 exports.deleteBook = (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({ message: 'Invalid ID format' })
+    }
+
     Book.findOne({ _id: req.params.id })
         .then((book) => {
             if (book.userId != req.auth.userId) {
-                res.status(401).json({ message: 'Not authorized' })
+                res.status(401).json({ message: 'Not authorized cc' })
             } else {
                 const filename = book.imageUrl.split('/images/')[1]
                 fs.unlink(`images/${filename}`, () => {
@@ -90,6 +107,10 @@ exports.deleteBook = (req, res, next) => {
 }
 
 exports.addRatingBook = (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({ message: 'Invalid ID format' })
+    }
+
     Book.findOne({ _id: req.params.id })
         .then((book) => {
             // Vérifier que l'utilisateur n'a pas déjà noté ce livre
@@ -113,7 +134,9 @@ exports.addRatingBook = (req, res, next) => {
                     (sum, rate) => sum + rate.grade,
                     0
                 ) // reduce permet de calculer la somme total, rate est l'objet actuel et sum la somme initialiser à 0
-                book.averageRating = totalRatings / book.ratings.length
+
+                book.averageRating =
+                    Math.round((totalRatings / book.ratings.length) * 10) / 10
 
                 // Sauvegarder les changements du livre dans la base de données MongoDB
                 book.save()
@@ -131,20 +154,27 @@ exports.addRatingBook = (req, res, next) => {
 }
 
 exports.getBestBooks = (req, res, next) => {
+    // Book.find()
+
     Book.find()
-        // Liste de tous les livres
-        .then((books) => {
-            // Trie les livres par `averageRating` de manière décroissante
-            const sortedBooks = books.sort(
-                (a, b) => b.averageRating - a.averageRating
-            )
-
-            // Prend les 3 premiers livres de la liste triée
-            const bestBooks = sortedBooks.slice(0, 3)
-
-            // Renvoie les 3 meilleurs livres
-            res.status(200).json(bestBooks)
-        })
-
+        .sort({ averageRating: -1 })
+        .limit(3)
+        .then((books) => res.status(200).json(books))
         .catch((error) => res.status(400).json({ error }))
+
+    // Liste de tous les livres
+    // .then((books) => {
+    // Trie les livres par `averageRating` de manière décroissante
+    // const sortedBooks = books.sort(
+    //     (a, b) => b.averageRating - a.averageRating
+    // )
+
+    // Prend les 3 premiers livres de la liste triée
+    // const bestBooks = sortedBooks.slice(0, 3)
+
+    // Renvoie les 3 meilleurs livres
+    //     res.status(200).json(bestBooks)
+    // })
+
+    // .catch((error) => res.status(400).json({ error }))
 }
