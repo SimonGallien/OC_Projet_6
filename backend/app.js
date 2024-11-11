@@ -5,9 +5,22 @@ const booksRoutes = require('./routes/book')
 const userRoutes = require('./routes/user')
 require('dotenv').config() // Charger dotenv
 
-// Vérifier si SECRET_KEY est défini en production
-if (!process.env.SECRET_KEY && process.env.NODE_ENV === 'production') {
-    throw new Error('SECRET_KEY is not defined in production environment')
+// Vérification de la clé secrète en production
+if (process.env.NODE_ENV === 'production') {
+    if (
+        !process.env.SECRET_KEY ||
+        process.env.SECRET_KEY === 'RANDOM_TOKEN_SECRET'
+    ) {
+        throw new Error(
+            'SECRET_KEY de production non définie ou trop faible. Vérifiez votre configuration.'
+        )
+    }
+}
+
+if (process.env.NODE_ENV === 'development') {
+    console.log('Running in development mode')
+} else if (process.env.NODE_ENV === 'production') {
+    console.log('Running in production mode')
 }
 
 const app = express()
