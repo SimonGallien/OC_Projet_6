@@ -3,25 +3,6 @@ const sharp = require('sharp')
 const path = require('path')
 const fs = require('fs')
 
-// const MIME_TYPES = {
-//     'image/jpg': 'jpg',
-//     'image/jpeg': 'jpg',
-//     'image/png': 'png',
-// }
-
-// const storage = multer.diskStorage({
-//     destination: (req, file, callback) => {
-//         callback(null, 'images')
-//     },
-//     filename: (req, file, callback) => {
-//         const name = file.originalname.split(' ').join('_')
-//         const extension = MIME_TYPES[file.mimetype]
-//         callback(null, name + Date.now() + '.' + extension)
-//     },
-// })
-
-// module.exports = multer({ storage: storage }).single('image')
-
 // Configuration de `memoryStorage` pour stocker l'image en mémoire temporairement
 const storage = multer.memoryStorage()
 const upload = multer({ storage }).single('image')
@@ -30,7 +11,7 @@ const upload = multer({ storage }).single('image')
 async function optimizeImage(buffer, filename) {
     const outputFilePath = path.join('images', filename)
 
-    await sharp(buffer)
+    await sharp(buffer) // Traite l'image en mémoire
         .resize({ width: 800 }) // Redimensionne à 800px de large
         .webp({ quality: 80 }) // Conversion en WebP avec qualité 80%
         .toFile(outputFilePath) // Enregistre l'image optimisée dans le dossier 'images'

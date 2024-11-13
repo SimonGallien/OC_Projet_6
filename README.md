@@ -38,7 +38,7 @@
     ```
 3. Installez les dépendances du projet :
     ```bash
-    npm install
+    npm run install-all
     ```
 4. Configurez vos variables d'environnement (voir la section [Configuration](#configuration)).
 
